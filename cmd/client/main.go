@@ -18,11 +18,11 @@ func main() {
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Print("Write text: ")
 		text, _ := reader.ReadString('\n')
-
-		c := client.NewClient(conn)
-
+		//Writing to hub
+		c := client.NewClient(conn, conn, conn)
 		c.Write([]byte(text))
 
+		//Reading hub response
 		b, err := c.Read()
 		if err != nil {
 			log.Printf(err.Error())
