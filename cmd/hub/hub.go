@@ -1,9 +1,15 @@
 package main
 
-import "net"
-import "fmt"
-import "bufio"
-import "strings" // only needed below for sample processing
+import (
+	"fmt"
+	"io"
+	"net"
+	"strings"
+
+	"github.com/eferhatg/uinty-assignment/pkg/client"
+)
+
+// only needed below for sample processing
 
 func main() {
 
@@ -12,18 +18,21 @@ func main() {
 	ln, _ := net.Listen("tcp", ":5555")
 
 	conn, _ := ln.Accept()
+	c := client.NewClient(conn)
 
 	for {
 
-		message, _ := bufio.NewReader(conn).ReadString('\n')
-
-		fmt.Print("Got:", string(message))
+		b, err := c.Read()
+		message := string(b)
+		fmt.Print("Got:", message)
 
 		newmessage := strings.ToUpper(message)
 
-		w := bufio.NewWriter(conn)
-		w.Write([]byte(newmessage + "\n"))
-		w.Flush()
-		//conn.Write([]byte(newmessage + "\n"))
+		c.Write([]byte(newmessage + "\n"))
+
+		if err == io.EOF {
+			break
+		}
+
 	}
 }

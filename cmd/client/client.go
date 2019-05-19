@@ -6,6 +6,8 @@ import (
 	"log"
 	"net"
 	"os"
+
+	"github.com/eferhatg/uinty-assignment/pkg/client"
 )
 
 func main() {
@@ -17,17 +19,10 @@ func main() {
 		fmt.Print("Write text: ")
 		text, _ := reader.ReadString('\n')
 
-		connw := bufio.NewWriter(conn)
-		connw.WriteString(text + "\n")
-		connw.Flush()
+		c := client.NewClient(conn)
+		c.Write([]byte(text))
 
-		//b := make([]byte, 10000)
-		//_, err := conn.Read(b)
-
-		ww := bufio.NewReader(conn)
-		b := make([]byte, 10000)
-		_, err := ww.Read(b)
-
+		b, err := c.Read()
 		if err != nil {
 			log.Printf(err.Error())
 		}
