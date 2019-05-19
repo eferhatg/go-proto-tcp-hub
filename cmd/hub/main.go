@@ -11,5 +11,5 @@ func main() {
 	fmt.Println("Launching server...")
 
 	h := hub.NewHub()
-	h.Listen(1087)
+	h.Start(1087)
 }
