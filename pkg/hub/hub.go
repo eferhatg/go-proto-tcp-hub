@@ -53,6 +53,7 @@ func (h *Hub) Start(startport int) error {
 			log.Panicln("Error: ", err)
 		}
 		c := client.NewClient(conn)
+
 		h.clients = append(h.clients, c)
 		h.accept <- c
 	}

@@ -9,6 +9,7 @@ import (
 const MAX_MSG_SIZE int = 1048576
 
 type Client struct {
+	UserID uint64
 	Conn   *net.Conn
 	Reader *bufio.Reader
 	Writer *bufio.Writer
