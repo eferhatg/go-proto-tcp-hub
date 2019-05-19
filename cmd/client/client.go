@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"net"
 	"os"
 )
@@ -20,7 +21,12 @@ func main() {
 		connw.WriteString(text + "\n")
 		connw.Flush()
 
-		message, _ := bufio.NewReader(conn).ReadString('\n')
-		fmt.Print("Response: " + message)
+		b := make([]byte, 10000)
+		_, err := conn.Read(b)
+		if err != nil {
+			log.Printf(err.Error())
+		}
+
+		fmt.Print("Response: " + string(b))
 	}
 }
