@@ -17,21 +17,23 @@ func main() {
 
 	conn, err := net.Dial("tcp", ":1087")
 	if conn == nil {
-		log.Println("Bağlantı yok")
+		log.Fatal("No connection")
 		return
 	}
 	if err != nil {
-		log.Println(err.Error())
+		log.Fatal(err.Error())
 		return
 	}
 	c := client.NewClient(conn)
 	go handle(c)
 	for {
 
+		//Reading choice from stdin
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Print("Write text: ")
 		text, _ := reader.ReadString('\n')
-		//Writing to hub
+
+		//Writing to socket predefined messages depending on the choice
 		m := protocol.Message{}
 		switch strings.Trim(text, "\n") {
 		case "identity":
@@ -46,8 +48,6 @@ func main() {
 			bt, _ := proto.Marshal(&m)
 			c.Write(bt)
 		}
-
-		//Reading hub response
 
 	}
 }
@@ -72,7 +72,10 @@ func sendList(c *client.Client) {
 	}
 }
 
-func sendRelay(c *client.Client, to []uint64, bodyType protocol.Message_Bodies, body []byte) {
+func sendRelay(c *client.Client) {
+	to := []uint64{1, 2, 3, 4, 5, 6}
+	bodyType := protocol.Message_PLAIN_TEXT
+	body := []byte("This can be a string up to 1mb")
 	m := protocol.Message{
 		Command:  protocol.Message_RELAY,
 		Id:       c.UserID,

@@ -123,3 +123,27 @@ func (h *Hub) listResponse(c *client.Client, m *protocol.Message) {
 	bt, _ := proto.Marshal(m)
 	c.Write(bt)
 }
+
+func (h *Hub) relayResponse(current *client.Client, m *protocol.Message) {
+	if len(m.GetBody()) > 1048576 {
+		//err := errors.New("Body is bigger than 1024kb")
+		return
+	}
+	if len(m.GetRelayTo()) > 255 {
+		//err := errors.New("Reciever count is bigger than 255")
+		return
+	}
+
+	bt, err := proto.Marshal(m)
+	if err != nil {
+		return
+	}
+
+	for _, cli := range h.clients {
+		for _, id := range m.GetRelayTo() {
+			if id == cli.UserID && id != m.Id {
+				cli.Write(bt)
+			}
+		}
+	}
+}
