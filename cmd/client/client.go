@@ -21,8 +21,13 @@ func main() {
 		connw.WriteString(text + "\n")
 		connw.Flush()
 
+		//b := make([]byte, 10000)
+		//_, err := conn.Read(b)
+
+		ww := bufio.NewReader(conn)
 		b := make([]byte, 10000)
-		_, err := conn.Read(b)
+		_, err := ww.Read(b)
+
 		if err != nil {
 			log.Printf(err.Error())
 		}

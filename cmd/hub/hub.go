@@ -21,6 +21,9 @@ func main() {
 
 		newmessage := strings.ToUpper(message)
 
-		conn.Write([]byte(newmessage + "\n"))
+		w := bufio.NewWriter(conn)
+		w.Write([]byte(newmessage + "\n"))
+		w.Flush()
+		//conn.Write([]byte(newmessage + "\n"))
 	}
 }
