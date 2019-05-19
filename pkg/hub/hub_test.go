@@ -28,6 +28,6 @@ func TestHub_Start(t *testing.T) {
 	if conn == nil {
 		t.Error("Nil connection error")
 	}
-	h.terminate <- true
+	h.listener.Close()
 
 }

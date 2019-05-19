@@ -19,7 +19,7 @@ func main() {
 		fmt.Print("Write text: ")
 		text, _ := reader.ReadString('\n')
 		//Writing to hub
-		c := client.NewClient(conn, conn, conn)
+		c := client.NewClient(conn)
 		c.Write([]byte(text))
 
 		//Reading hub response

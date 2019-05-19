@@ -2,7 +2,6 @@ package client
 
 import (
 	"bufio"
-	"io"
 	"log"
 	"net"
 )
@@ -16,11 +15,11 @@ type Client struct {
 	Writer *bufio.Writer
 }
 
-func NewClient(conn net.Conn, reader io.Reader, writer io.Writer) *Client {
+func NewClient(conn net.Conn) *Client {
 	return &Client{
 		Conn:   &conn,
-		Reader: bufio.NewReader(reader),
-		Writer: bufio.NewWriter(writer),
+		Reader: bufio.NewReader(conn),
+		Writer: bufio.NewWriter(conn),
 	}
 }
 

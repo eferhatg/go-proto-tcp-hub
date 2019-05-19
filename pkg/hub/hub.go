@@ -13,6 +13,7 @@ import (
 
 //Hub holds
 type Hub struct {
+	listener  net.Listener
 	clients   []*client.Client
 	accept    chan *client.Client
 	terminate chan bool
@@ -44,7 +45,7 @@ func (h *Hub) Start(startport int) error {
 	port := strconv.Itoa(startport)
 
 	ll, err := net.Listen("tcp", ":"+port)
-
+	h.listener = ll
 	if err != nil {
 		log.Panicln("Error: ", err)
 		return err

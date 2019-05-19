@@ -6,7 +6,7 @@ import (
 )
 
 func TestClient_NewClient(t *testing.T) {
-	c := NewClient(nil, nil, nil)
+	c := NewClient(nil)
 
 	if c == nil {
 		t.Error("Client init error")
