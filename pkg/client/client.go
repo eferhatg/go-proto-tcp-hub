@@ -4,15 +4,18 @@ import (
 	"bufio"
 	"log"
 	"net"
+
+	"github.com/eferhatg/uinty-assignment/pkg/protocol"
 )
 
 const MAX_MSG_SIZE int = 1048576
 
 type Client struct {
-	UserID uint64
-	Conn   *net.Conn
-	Reader *bufio.Reader
-	Writer *bufio.Writer
+	UserID   uint64
+	Conn     *net.Conn
+	Reader   *bufio.Reader
+	Writer   *bufio.Writer
+	Incoming chan *protocol.Message
 }
 
 func NewClient(conn net.Conn) *Client {
@@ -38,11 +41,11 @@ func (c *Client) Write(data []byte) error {
 }
 
 func (c *Client) Read() ([]byte, error) {
-
-	b, _, err := c.Reader.ReadLine()
+	buf := make([]byte, 1024)
+	len, err := c.Reader.Read(buf)
 	if err != nil {
 		log.Printf(err.Error())
 		return nil, err
 	}
-	return b, nil
+	return buf[:len], nil
 }

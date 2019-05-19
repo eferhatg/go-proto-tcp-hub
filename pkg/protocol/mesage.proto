@@ -3,12 +3,13 @@ package protocol;
 
 message Message{
     enum Commands {
-        IDENTITY = 0;
-        LIST = 1;
-        MESSAGE = 2;
+        NONE=0;
+        IDENTITY = 1;
+        LIST = 2;
+        RELAY = 3;
       }
     Commands Command=1;    
-    uint64 Id=2;
+     uint64 Id=2;
     repeated uint64 ConnectedClientIds=3;
     repeated uint64 RelayTo=4;    
     enum Bodies {

@@ -1,14 +1,14 @@
 package hub
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net"
 	"strconv"
-	"strings"
 
 	"github.com/eferhatg/uinty-assignment/pkg/client"
+	"github.com/eferhatg/uinty-assignment/pkg/protocol"
+	"github.com/golang/protobuf/proto"
 )
 
 //Hub holds
@@ -34,7 +34,7 @@ func (h *Hub) listen() {
 		for {
 			select {
 			case client := <-h.accept:
-				h.acceptClient(client)
+				go h.acceptClient(client)
 			}
 		}
 	}()
@@ -53,40 +53,73 @@ func (h *Hub) Start(startport int) error {
 	h.listen()
 	for {
 		conn, err := ll.Accept()
+		log.Println("New client")
 		if err != nil {
 			log.Panicln("Error: ", err)
 		}
-		c := client.NewClient(conn)
 
+		c := client.NewClient(conn)
+		c.UserID = uint64(len(h.clients) + 1)
 		h.clients = append(h.clients, c)
+		log.Println(len(h.clients))
 		h.accept <- c
-		if <-h.terminate {
-			break
-		}
+
 	}
-	return nil
 
 }
 
 //acceptClient accepts clients
 func (h *Hub) acceptClient(c *client.Client) error {
 
-	go func() {
-		for {
-			b, err := c.Read()
-			message := string(b)
-			fmt.Print("Got:", message+"\n")
+	for {
 
-			newmessage := strings.ToUpper(message)
+		b, err := c.Read()
+		log.Println("Yeni Mesaj")
+		m := &protocol.Message{}
+		proto.Unmarshal(b, m)
 
-			c.Write([]byte(newmessage + "\n"))
-
-			if err == io.EOF {
-				break
-			}
+		switch m.GetCommand() {
+		case protocol.Message_IDENTITY:
+			go h.identityResponse(c, m)
+		case protocol.Message_LIST:
+			go h.listResponse(c, m)
+		case protocol.Message_RELAY:
+			//	h.relayResponse(current, cmd)
 
 		}
-	}()
+		if m.GetCommand() == protocol.Message_IDENTITY {
+			h.identityResponse(c, m)
+		}
+
+		if err == io.EOF {
+			break
+		}
+
+	}
 
 	return nil
+}
+
+func (h *Hub) identityResponse(c *client.Client, m *protocol.Message) {
+
+	m.Id = c.UserID
+	bt, _ := proto.Marshal(m)
+
+	c.Write(bt)
+}
+
+func (h *Hub) listResponse(c *client.Client, m *protocol.Message) {
+	log.Print("TEST")
+	m.Id = c.UserID
+	list := []uint64{}
+	for _, cli := range h.clients {
+		if c.UserID != cli.UserID {
+			list = append(list, cli.UserID)
+		}
+	}
+	log.Print(list)
+	m.ConnectedClientIds = list
+
+	bt, _ := proto.Marshal(m)
+	c.Write(bt)
 }
