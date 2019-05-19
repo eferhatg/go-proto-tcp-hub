@@ -1,0 +1,21 @@
+syntax="proto3";
+package protocol;
+
+message Message{
+    enum Commands {
+        IDENTITY = 0;
+        LIST = 1;
+        MESSAGE = 2;
+      }
+    Commands Command=1;    
+    uint64 Id=2;
+    repeated uint64 ConnectedClientIds=3;
+    repeated uint64 RelayTo=4;    
+    enum Bodies {
+        NIL = 0;
+        PLAIN_TEXT = 3;
+        JSON = 4;
+      }
+    Bodies BodyType=5;
+    bytes Body=6;
+}
