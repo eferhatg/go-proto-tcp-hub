@@ -23,10 +23,12 @@ func NewClient(conn net.Conn) *Client {
 }
 
 func (c *Client) Write(data []byte) error {
+
 	_, err := c.Writer.Write(data)
 	if err != nil {
 		return err
 	}
+
 	err = c.Writer.Flush()
 	if err != nil {
 		return err

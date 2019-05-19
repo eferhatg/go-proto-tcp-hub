@@ -12,7 +12,7 @@ import (
 
 func main() {
 
-	conn, _ := net.Dial("tcp", ":5555")
+	conn, _ := net.Dial("tcp", ":1087")
 	for {
 
 		reader := bufio.NewReader(os.Stdin)
@@ -20,6 +20,7 @@ func main() {
 		text, _ := reader.ReadString('\n')
 
 		c := client.NewClient(conn)
+
 		c.Write([]byte(text))
 
 		b, err := c.Read()
@@ -27,6 +28,6 @@ func main() {
 			log.Printf(err.Error())
 		}
 
-		fmt.Print("Response: " + string(b))
+		fmt.Print("Response: " + string(b) + "\n")
 	}
 }
