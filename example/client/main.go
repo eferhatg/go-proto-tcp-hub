@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/eferhatg/uinty-assignment/pkg/client"
@@ -100,11 +101,46 @@ func handle(c *client.Client) {
 		}
 		nm := &protocol.Message{}
 		proto.Unmarshal(b, nm)
-
+		handleMsg(nm)
 		if err == io.EOF {
 			log.Println("HUB SHUT DOWN")
 			break
 		}
 	}
 	os.Exit(1)
+}
+
+func handleMsg(m *protocol.Message) {
+	switch m.GetCommand() {
+	case protocol.Message_IDENTITY:
+		//Got msg.Id
+		id := m.GetId()
+		fmt.Printf("\nMy ID is %s", strconv.FormatUint(id, 10)+"\n")
+
+	case protocol.Message_LIST:
+		//Got msg.ConnectedClientIds
+		ids := m.GetConnectedClientIds()
+
+		if len(ids) == 0 {
+			fmt.Printf("\nYou are the only client connected\n")
+		} else {
+			fmt.Printf("\nConnected client ids are [%s]\n", strings.Trim(strings.Join(strings.Fields(fmt.Sprint(ids)), ","), "[]"))
+		}
+
+	case protocol.Message_RELAY:
+		/*
+			Got msg.Body and msg.BodyType
+			You can convert/unmarshal body according to bodytype
+		*/
+		fmt.Printf("\nYou have a message from %s\n", strconv.FormatUint(m.GetId(), 10))
+		switch m.BodyType {
+		case protocol.Message_PLAIN_TEXT:
+			fmt.Printf("\n\"%s\"\n", string(m.GetBody()))
+		case protocol.Message_JSON:
+			//Unmarshal body to json
+		case protocol.Message_ERROR:
+			err := fmt.Errorf("Error:%s", string(m.GetBody()))
+			fmt.Printf(err.Error())
+		}
+	}
 }

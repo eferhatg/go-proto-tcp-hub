@@ -144,7 +144,7 @@ func (h *Hub) relayResponse(c *client.Client, m *protocol.Message) {
 		c.Write(bt)
 		return
 	}
-
+	m.Id = c.UserID
 	bt, err := proto.Marshal(m)
 	if err != nil {
 		return
