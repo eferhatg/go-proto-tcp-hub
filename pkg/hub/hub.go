@@ -62,9 +62,11 @@ func (h *Hub) Start(startport int) error {
 
 		c := client.NewClient(conn)
 		c.UserID = uint64(len(h.clients) + 1)
+
 		h.mutex.Lock()
 		h.clients[c.UserID] = c
 		h.mutex.Unlock()
+
 		log.Printf("New client connected. Client id: %s. %s clients connected now.", strconv.FormatUint(c.UserID, 10), strconv.Itoa(len(h.clients)))
 		h.accept <- c
 	}
@@ -80,7 +82,7 @@ func (h *Hub) handleClient(c *client.Client) error {
 
 		m := &protocol.Message{}
 		proto.Unmarshal(b, m)
-
+		log.Printf("Recieved %s message from client %s", m.GetCommand(), strconv.FormatUint(c.UserID, 10))
 		switch m.GetCommand() {
 		case protocol.Message_IDENTITY:
 			go h.identityResponse(c, m)
@@ -91,9 +93,11 @@ func (h *Hub) handleClient(c *client.Client) error {
 		}
 
 		if err == io.EOF {
+
 			h.mutex.Lock()
 			delete(h.clients, c.UserID)
 			h.mutex.Unlock()
+
 			log.Printf("A client disconnected. Dsconnected client id: %s. Total %s clients connected now.", strconv.FormatUint(c.UserID, 10), strconv.Itoa(len(h.clients)))
 
 			break
@@ -115,12 +119,12 @@ func (h *Hub) listResponse(c *client.Client, m *protocol.Message) {
 
 	m.Id = c.UserID
 	list := []uint64{}
-	for k, c := range h.clients {
+	for k := range h.clients {
 		if c.UserID != k {
 			list = append(list, k)
 		}
 	}
-	log.Print(list)
+
 	m.ConnectedClientIds = list
 
 	bt, _ := proto.Marshal(m)
@@ -148,9 +152,9 @@ func (h *Hub) relayResponse(c *client.Client, m *protocol.Message) {
 		return
 	}
 
-	for _, cli := range h.clients {
+	for k, cli := range h.clients {
 		for _, id := range m.GetRelayTo() {
-			if id == cli.UserID && id != c.UserID {
+			if id == k && id != c.UserID {
 
 				cli.Write(bt)
 			}

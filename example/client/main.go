@@ -44,7 +44,7 @@ func main() {
 		case "relay":
 			sendRelay(c)
 		default:
-			fmt.Print("Command not found")
+			fmt.Print("Command not found\n")
 		}
 
 		if proto.Size(&m) > 0 {
@@ -100,10 +100,11 @@ func handle(c *client.Client) {
 		}
 		nm := &protocol.Message{}
 		proto.Unmarshal(b, nm)
-		log.Println(nm)
 
 		if err == io.EOF {
+			log.Println("HUB SHUT DOWN")
 			break
 		}
 	}
+	os.Exit(1)
 }
