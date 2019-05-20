@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"strconv"
+	"sync"
 
 	"github.com/eferhatg/uinty-assignment/pkg/client"
 	"github.com/eferhatg/uinty-assignment/pkg/protocol"
@@ -14,17 +15,19 @@ import (
 //Hub holds
 type Hub struct {
 	listener  net.Listener
-	clients   []*client.Client
+	clients   map[uint64]*client.Client
 	accept    chan *client.Client
 	terminate chan bool
+	mutex     *sync.Mutex
 }
 
 //NewHub initialize Hub
 func NewHub() *Hub {
 	return &Hub{
-		clients:   make([]*client.Client, 0),
+		clients:   make(map[uint64]*client.Client, 0),
 		accept:    make(chan *client.Client),
 		terminate: make(chan bool),
+		mutex:     &sync.Mutex{},
 	}
 }
 
@@ -34,7 +37,7 @@ func (h *Hub) listen() {
 		for {
 			select {
 			case client := <-h.accept:
-				go h.acceptClient(client)
+				go h.handleClient(client)
 			}
 		}
 	}()
@@ -53,28 +56,28 @@ func (h *Hub) Start(startport int) error {
 	h.listen()
 	for {
 		conn, err := ll.Accept()
-		log.Println("New client")
 		if err != nil {
 			log.Panicln("Error: ", err)
 		}
 
 		c := client.NewClient(conn)
 		c.UserID = uint64(len(h.clients) + 1)
-		h.clients = append(h.clients, c)
-		log.Println(len(h.clients))
+		h.mutex.Lock()
+		h.clients[c.UserID] = c
+		h.mutex.Unlock()
+		log.Printf("New client connected. Client id: %s. %s clients connected now.", strconv.FormatUint(c.UserID, 10), strconv.Itoa(len(h.clients)))
 		h.accept <- c
-
 	}
 
 }
 
-//acceptClient accepts clients
-func (h *Hub) acceptClient(c *client.Client) error {
+//handleClient listens and handles client connections
+func (h *Hub) handleClient(c *client.Client) error {
 
 	for {
 
 		b, err := c.Read()
-		log.Println("Yeni Mesaj")
+
 		m := &protocol.Message{}
 		proto.Unmarshal(b, m)
 
@@ -85,10 +88,14 @@ func (h *Hub) acceptClient(c *client.Client) error {
 			go h.listResponse(c, m)
 		case protocol.Message_RELAY:
 			h.relayResponse(c, m)
-
 		}
 
 		if err == io.EOF {
+			h.mutex.Lock()
+			delete(h.clients, c.UserID)
+			h.mutex.Unlock()
+			log.Printf("A client disconnected. Dsconnected client id: %s. Total %s clients connected now.", strconv.FormatUint(c.UserID, 10), strconv.Itoa(len(h.clients)))
+
 			break
 		}
 
@@ -101,17 +108,16 @@ func (h *Hub) identityResponse(c *client.Client, m *protocol.Message) {
 
 	m.Id = c.UserID
 	bt, _ := proto.Marshal(m)
-
 	c.Write(bt)
 }
 
 func (h *Hub) listResponse(c *client.Client, m *protocol.Message) {
-	log.Print("TEST")
+
 	m.Id = c.UserID
 	list := []uint64{}
-	for _, cli := range h.clients {
-		if c.UserID != cli.UserID {
-			list = append(list, cli.UserID)
+	for k, c := range h.clients {
+		if c.UserID != k {
+			list = append(list, k)
 		}
 	}
 	log.Print(list)

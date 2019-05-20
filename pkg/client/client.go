@@ -41,7 +41,7 @@ func (c *Client) Write(data []byte) error {
 }
 
 func (c *Client) Read() ([]byte, error) {
-	buf := make([]byte, 1024)
+	buf := make([]byte, MAX_MSG_SIZE)
 	len, err := c.Reader.Read(buf)
 	if err != nil {
 		log.Printf(err.Error())

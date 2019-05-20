@@ -43,6 +43,8 @@ func main() {
 			sendList(c)
 		case "relay":
 			sendRelay(c)
+		default:
+			fmt.Print("Command not found")
 		}
 
 		if proto.Size(&m) > 0 {
@@ -76,7 +78,7 @@ func sendList(c *client.Client) {
 func sendRelay(c *client.Client) {
 	to := []uint64{1, 2, 3, 4, 5, 6}
 	bodyType := protocol.Message_PLAIN_TEXT
-	body := []byte("This can be a string up to 1mb")
+	body := []byte("This can be anything up to 1mb")
 	m := protocol.Message{
 		Command:  protocol.Message_RELAY,
 		Id:       c.UserID,
