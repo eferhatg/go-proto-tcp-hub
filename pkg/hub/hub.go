@@ -84,11 +84,8 @@ func (h *Hub) acceptClient(c *client.Client) error {
 		case protocol.Message_LIST:
 			go h.listResponse(c, m)
 		case protocol.Message_RELAY:
-			//	h.relayResponse(current, cmd)
+			h.relayResponse(c, m)
 
-		}
-		if m.GetCommand() == protocol.Message_IDENTITY {
-			h.identityResponse(c, m)
 		}
 
 		if err == io.EOF {
@@ -124,13 +121,19 @@ func (h *Hub) listResponse(c *client.Client, m *protocol.Message) {
 	c.Write(bt)
 }
 
-func (h *Hub) relayResponse(current *client.Client, m *protocol.Message) {
+func (h *Hub) relayResponse(c *client.Client, m *protocol.Message) {
 	if len(m.GetBody()) > 1048576 {
-		//err := errors.New("Body is bigger than 1024kb")
+		m.BodyType = protocol.Message_ERROR
+		m.Body = []byte("Body is bigger than 1024kb")
+		bt, _ := proto.Marshal(m)
+		c.Write(bt)
 		return
 	}
 	if len(m.GetRelayTo()) > 255 {
-		//err := errors.New("Reciever count is bigger than 255")
+		m.BodyType = protocol.Message_ERROR
+		m.Body = []byte("Reciever count is bigger than 255")
+		bt, _ := proto.Marshal(m)
+		c.Write(bt)
 		return
 	}
 
@@ -141,7 +144,8 @@ func (h *Hub) relayResponse(current *client.Client, m *protocol.Message) {
 
 	for _, cli := range h.clients {
 		for _, id := range m.GetRelayTo() {
-			if id == cli.UserID && id != m.Id {
+			if id == cli.UserID && id != c.UserID {
+
 				cli.Write(bt)
 			}
 		}

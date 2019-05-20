@@ -41,7 +41,7 @@ func main() {
 		case "list":
 			sendList(c)
 		case "relay":
-			//	sendRelay(c)
+			sendRelay(c)
 		}
 
 		if proto.Size(&m) > 0 {

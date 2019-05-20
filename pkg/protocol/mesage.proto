@@ -14,8 +14,9 @@ message Message{
     repeated uint64 RelayTo=4;    
     enum Bodies {
         NIL = 0;
-        PLAIN_TEXT = 3;
-        JSON = 4;
+        PLAIN_TEXT = 1;
+        JSON = 2;
+        ERROR = 3;
       }
     Bodies BodyType=5;
     bytes Body=6;
