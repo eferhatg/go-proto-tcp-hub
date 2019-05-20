@@ -1,6 +1,7 @@
 package hub
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -49,6 +50,7 @@ func (h *Hub) Start(startport int) error {
 
 	ll, err := net.Listen("tcp", ":"+port)
 	h.listener = ll
+	defer ll.Close()
 	if err != nil {
 		log.Panicln("Error: ", err)
 		return err
@@ -67,9 +69,10 @@ func (h *Hub) Start(startport int) error {
 		h.clients[c.UserID] = c
 		h.mutex.Unlock()
 
-		log.Printf("New client connected. Client id: %s. %s clients connected now.", strconv.FormatUint(c.UserID, 10), strconv.Itoa(len(h.clients)))
+		fmt.Printf("New client connected. Client id: %s. %s clients connected now.\n", strconv.FormatUint(c.UserID, 10), strconv.Itoa(len(h.clients)))
 		h.accept <- c
 	}
+	return nil
 
 }
 
@@ -82,23 +85,25 @@ func (h *Hub) handleClient(c *client.Client) error {
 
 		m := &protocol.Message{}
 		proto.Unmarshal(b, m)
-		log.Printf("Recieved %s message from client %s", m.GetCommand(), strconv.FormatUint(c.UserID, 10))
-		switch m.GetCommand() {
-		case protocol.Message_IDENTITY:
-			go h.identityResponse(c, m)
-		case protocol.Message_LIST:
-			go h.listResponse(c, m)
-		case protocol.Message_RELAY:
-			h.relayResponse(c, m)
-		}
+		if m.GetCommand() != protocol.Message_NONE {
 
+			fmt.Printf("Recieved %s message from client %s\n", m.GetCommand(), strconv.FormatUint(c.UserID, 10))
+			switch m.GetCommand() {
+			case protocol.Message_IDENTITY:
+				go h.identityResponse(c, m)
+			case protocol.Message_LIST:
+				go h.listResponse(c, m)
+			case protocol.Message_RELAY:
+				h.relayResponse(c, m)
+			}
+		}
 		if err == io.EOF {
 
 			h.mutex.Lock()
 			delete(h.clients, c.UserID)
 			h.mutex.Unlock()
 
-			log.Printf("A client disconnected. Dsconnected client id: %s. Total %s clients connected now.", strconv.FormatUint(c.UserID, 10), strconv.Itoa(len(h.clients)))
+			fmt.Printf("A client disconnected. Dsconnected client id: %s. Total %s clients connected now.\n", strconv.FormatUint(c.UserID, 10), strconv.Itoa(len(h.clients)))
 
 			break
 		}
