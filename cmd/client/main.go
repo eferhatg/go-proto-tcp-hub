@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -98,5 +99,9 @@ func handle(c *client.Client) {
 		nm := &protocol.Message{}
 		proto.Unmarshal(b, nm)
 		log.Println(nm)
+
+		if err == io.EOF {
+			break
+		}
 	}
 }
