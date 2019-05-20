@@ -29,8 +29,6 @@ var (
 	tcpPortRand = rand.New(rand.NewSource(time.Now().UnixNano()))
 )
 
-// IsTCPPortAvailable returns a flag indicating whether or not a TCP port is
-// available.
 func IsTCPPortAvailable(port int) bool {
 	if port < minTCPPort || port > maxTCPPort {
 		return false
@@ -43,8 +41,6 @@ func IsTCPPortAvailable(port int) bool {
 	return true
 }
 
-// RandomTCPPort gets a free, random TCP port between 1025-65535. If no free
-// ports are available -1 is returned.
 func FindAvailablePort() int {
 	for i := maxReservedTCPPort; i < maxTCPPort; i++ {
 		p := tcpPortRand.Intn(maxRandTCPPort) + maxReservedTCPPort + 1
@@ -54,26 +50,6 @@ func FindAvailablePort() int {
 	}
 	return -1
 }
-
-// func FindAvailablePort() int {
-
-// 	for {
-
-// 		rand.Seed(time.Now().UnixNano())
-// 		min := 10000
-// 		max := 99999
-// 		port := rand.Intn(max-min) + min
-// 		ln, err := net.Listen("tcp", ":"+strconv.Itoa(port))
-
-// 		if err != nil {
-// 			continue
-// 		}
-
-// 		ln.Close()
-// 		time.Sleep(time.Second)
-// 		return port
-// 	}
-// }
 
 func TestHub_NewHub(t *testing.T) {
 	h := NewHub()
@@ -281,25 +257,89 @@ func TestHub_MultiClientList(t *testing.T) {
 
 }
 
-// func TestHub_1000_Dial(t *testing.T) {
-// 	h := NewHub()
-// 	go h.Start(6789)
-// 	for i := 0; i < 10; i++ {
-// 		go func() {
-// 			conn, err := net.Dial("tcp", ":6789")
+func TestHub_MultiClientRelay(t *testing.T) {
 
-// 			if err != nil {
-// 				t.Error(err.Error())
-// 				return
-// 			}
-// 			if conn == nil {
-// 				t.Error("Nil connection error")
-// 				return
-// 			}
+	clientCount := 5
+	/*
+		Read handler function
+	*/
+	handler := func(conn net.Conn, waitgroup *sync.WaitGroup) {
+		for {
+			out := make([]byte, 1024*1024)
+			len, err := conn.Read(out)
+			if err != nil {
+				conn.Close()
+				if err != io.EOF {
+					t.Error("Failed")
+				} else {
+					m := &protocol.Message{}
+					err := proto.Unmarshal(out[:len], m)
+					if err != nil {
+						t.Error(err.Error())
+					}
+					expected := "This can be anything up to 1mb"
+					if string(m.GetBody()) != expected {
+						t.Error("Wrong body")
+					}
+				}
+			}
+			waitgroup.Done()
+		}
+	}
 
-// 			defer conn.Close()
-// 		}()
+	/*
+		Init New Hub
+		Connect clients
+	*/
 
-// 	}
+	port := FindAvailablePort()
+	h := NewHub()
+	go h.Start(port)
+	time.Sleep(time.Second)
+	conns := make([]*net.Conn, clientCount)
+	for i := 0; i < clientCount; i++ {
+		conn, err := net.Dial("tcp", ":"+strconv.Itoa(port))
+		if err != nil {
+			t.Error("Failed to connect to tcp server on address ", err)
+			conn.Close()
 
-// }
+		}
+		conns[i] = &conn
+	}
+
+	connSender, err := net.Dial("tcp", ":"+strconv.Itoa(port))
+	if err != nil {
+		t.Error("Failed to connect to tcp server on address ", err)
+		connSender.Close()
+
+	}
+
+	to := []uint64{1, 2, 3, 4, 5, 6}
+	bodyType := protocol.Message_PLAIN_TEXT
+	body := []byte("This can be anything up to 1mb")
+	m := protocol.Message{
+		Command:  protocol.Message_RELAY,
+		Id:       6,
+		RelayTo:  to,
+		BodyType: bodyType,
+		Body:     body,
+	}
+
+	bt, _ := proto.Marshal(&m)
+	if _, err := connSender.Write(bt); err != nil {
+		t.Error("Could not write to hub error:", err)
+	}
+
+	/*
+		Handle all connections read ops
+	*/
+	var waitgroup sync.WaitGroup
+	waitgroup.Add(clientCount)
+	for i := 0; i < clientCount; i++ {
+		go handler(*conns[i], &waitgroup)
+	}
+
+	waitgroup.Wait()
+	connSender.Close()
+
+}
