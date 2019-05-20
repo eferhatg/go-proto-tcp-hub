@@ -8,8 +8,13 @@ import (
 	"github.com/eferhatg/uinty-assignment/pkg/protocol"
 )
 
-const MAX_MSG_SIZE int = 1048576
+//MaxMsgSize keeps maximum size of message
+const MaxMsgSize int = 1048576
 
+//MaxRelayClientCount keeps maximum size of message
+const MaxRelayClientCount int = 255
+
+//Client keeps struct
 type Client struct {
 	UserID   uint64
 	Conn     *net.Conn
@@ -18,6 +23,7 @@ type Client struct {
 	Incoming chan *protocol.Message
 }
 
+//NewClient initialize new Client
 func NewClient(conn net.Conn) *Client {
 	return &Client{
 		Conn:   &conn,
@@ -26,6 +32,7 @@ func NewClient(conn net.Conn) *Client {
 	}
 }
 
+//Write writes data to Writer
 func (c *Client) Write(data []byte) error {
 
 	_, err := c.Writer.Write(data)
@@ -40,8 +47,9 @@ func (c *Client) Write(data []byte) error {
 	return nil
 }
 
+//Read reads data from Reader
 func (c *Client) Read() ([]byte, error) {
-	buf := make([]byte, MAX_MSG_SIZE)
+	buf := make([]byte, MaxMsgSize)
 	len, err := c.Reader.Read(buf)
 	if err != nil {
 		log.Printf(err.Error())

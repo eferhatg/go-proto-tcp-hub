@@ -109,7 +109,6 @@ func (h *Hub) handleClient(c *client.Client) error {
 }
 
 func (h *Hub) identityResponse(c *client.Client, m *protocol.Message) {
-
 	m.Id = c.UserID
 	bt, _ := proto.Marshal(m)
 	c.Write(bt)
@@ -126,20 +125,19 @@ func (h *Hub) listResponse(c *client.Client, m *protocol.Message) {
 	}
 
 	m.ConnectedClientIds = list
-
 	bt, _ := proto.Marshal(m)
 	c.Write(bt)
 }
 
 func (h *Hub) relayResponse(c *client.Client, m *protocol.Message) {
-	if len(m.GetBody()) > 1048576 {
+	if len(m.GetBody()) > client.MaxMsgSize {
 		m.BodyType = protocol.Message_ERROR
 		m.Body = []byte("Body is bigger than 1024kb")
 		bt, _ := proto.Marshal(m)
 		c.Write(bt)
 		return
 	}
-	if len(m.GetRelayTo()) > 255 {
+	if len(m.GetRelayTo()) > client.MaxRelayClientCount {
 		m.BodyType = protocol.Message_ERROR
 		m.Body = []byte("Reciever count is bigger than 255")
 		bt, _ := proto.Marshal(m)
