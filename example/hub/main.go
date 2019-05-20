@@ -8,8 +8,7 @@ import (
 
 func main() {
 
-	fmt.Println("Launching server...")
-
+	fmt.Println("Listening port:1087 ")
 	h := hub.NewHub()
 	h.Start(1087)
 }
