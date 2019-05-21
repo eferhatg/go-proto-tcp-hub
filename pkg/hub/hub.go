@@ -72,8 +72,6 @@ func (h *Hub) Start(startport int) error {
 		fmt.Printf("New client connected. Client id: %s. %s clients connected now.\n", strconv.FormatUint(c.UserID, 10), strconv.Itoa(len(h.clients)))
 		h.accept <- c
 	}
-	return nil
-
 }
 
 //handleClient listens and handles client connections

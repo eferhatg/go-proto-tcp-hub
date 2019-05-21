@@ -20,7 +20,7 @@ A hub message consists of fields below. A client should parse the message accord
 
 Google Protocol Buffers is used for serializing structured data to consume minimal amount of resources.
 
-You should download and install protocol buffer compiler from [here](https://github.com/protocolbuffers/protobuf)
+You may need to download and install protocol buffer compiler from [here](https://github.com/protocolbuffers/protobuf)
 
 ## Usage
 
