@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/eferhatg/uinty-assignment/pkg/protocol"
+	"github.com/eferhatg/go-proto-tcp-hub/pkg/protocol"
 	"github.com/golang/protobuf/proto"
 )
 

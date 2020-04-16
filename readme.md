@@ -1,4 +1,7 @@
-# Unity Back End Engineer Assignment
+# Go-proto-tcp-hub
+
+What is this!
+============
 
 ## Folder Structure
 

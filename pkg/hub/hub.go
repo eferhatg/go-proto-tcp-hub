@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/eferhatg/uinty-assignment/pkg/client"
-	"github.com/eferhatg/uinty-assignment/pkg/protocol"
+	"github.com/eferhatg/go-proto-tcp-hub/pkg/client"
+	"github.com/eferhatg/go-proto-tcp-hub/pkg/protocol"
 	"github.com/golang/protobuf/proto"
 )
 

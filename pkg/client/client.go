@@ -5,7 +5,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/eferhatg/uinty-assignment/pkg/protocol"
+	"github.com/eferhatg/go-proto-tcp-hub/pkg/protocol"
 )
 
 //MaxMsgSize keeps maximum size of message

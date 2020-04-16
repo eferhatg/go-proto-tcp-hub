@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/eferhatg/uinty-assignment/pkg/hub"
+	"github.com/eferhatg/go-proto-tcp-hub/pkg/hub"
 )
 
 func main() {
