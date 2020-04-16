@@ -2,6 +2,7 @@
 
 What is this!
 ============
+A TCP Hub using Google Protocol Buffers. Contains tcp server(hub) and clients with some semantic commands.
 
 ## Folder Structure
 
